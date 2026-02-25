@@ -5,22 +5,15 @@
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
-    "deploy": "pnpm run deploy:database && pnpm run deploy:app",
-    "deploy:app": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "deploy:database": "cross-env NODE_ENV=production PAYLOAD_SECRET=ignore payload migrate && wrangler d1 execute D1 --command 'PRAGMA optimize' --remote",
-    "generate:types": "pnpm run generate:types:cloudflare && pnpm run generate:types:payload",
-    "generate:types:cloudflare": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "generate:types:payload": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.11.0",
-    "@payloadcms/db-d1-sqlite": "3.77.0",
+    "@payloadcms/db-vercel-postgres": "3.77.0",
     "@payloadcms/next": "3.77.0",
     "@payloadcms/richtext-lexical": "3.77.0",
-    "@payloadcms/storage-r2": "3.77.0",
+    "@payloadcms/storage-s3": "3.77.0",
     "@payloadcms/ui": "3.77.0",
     "cross-env": "^7.0.3",
     "graphql": "^16.8.1",
@@ -33,8 +26,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "5.7.3",
-    "wrangler": "^4.65.0"
+    "typescript": "5.7.3"
   },
   "engines": {
     "node": ">=20"

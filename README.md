@@ -1,23 +1,24 @@
 # erikankrom.com
 
-Personal website built with [Astro](https://astro.build) + [Payload CMS](https://payloadcms.com), deployed on [Cloudflare Workers](https://workers.cloudflare.com).
+Personal website built with [Astro](https://astro.build) + [Payload CMS](https://payloadcms.com), deployed on [Vercel](https://vercel.com).
 
 ## Architecture
 
 ```
 apps/
-  web/   → Astro frontend (SSR on Cloudflare Workers)
-  cms/   → Payload CMS backend (Next.js on Cloudflare Workers via OpenNext)
+  web/   → Astro frontend (Vercel Serverless Functions)
+  cms/   → Payload CMS backend (Next.js on Vercel)
 ```
 
-- **Frontend** (`apps/web`): Astro 5 with `@astrojs/cloudflare` adapter. Fetches content from Payload's REST API.
-- **CMS** (`apps/cms`): Payload 3 with D1 (SQLite) database and R2 storage for media. Admin panel at `/admin`.
+- **Frontend** (`apps/web`): Astro 5 with `@astrojs/vercel` adapter. Fetches content from Payload's REST API.
+- **CMS** (`apps/cms`): Payload 3 with Neon Postgres database and R2 storage for media. Admin panel at `/admin`.
 
 ## Prerequisites
 
 - Node.js >= 20
 - [pnpm](https://pnpm.io)
-- [Cloudflare account](https://dash.cloudflare.com) (for deployment)
+- [Vercel account](https://vercel.com)
+- [Cloudflare account](https://dash.cloudflare.com) (for R2 media storage)
 
 ## Setup
 
@@ -25,9 +26,8 @@ apps/
 # Install dependencies
 pnpm install
 
-# Generate a secret for the CMS
-openssl rand -hex 32
-# Add it to apps/cms/.dev.vars as PAYLOAD_SECRET=<your-secret>
+# Copy and fill in CMS env vars
+cp apps/cms/.env.example apps/cms/.env.local
 ```
 
 ## Development
@@ -44,41 +44,36 @@ On first CMS run, visit `http://localhost:3000/admin` to create your admin user.
 
 ## Deployment
 
-### 1. Create Cloudflare resources
+Both apps deploy as separate Vercel projects from this monorepo.
 
-```bash
-# Create D1 database
-wrangler d1 create erikankrom-cms
+### 1. CMS (`apps/cms`)
 
-# Create R2 bucket
-wrangler r2 bucket create erikankrom-media
-```
+1. Create a Vercel project with root directory set to `apps/cms`
+2. Add the Neon Postgres integration (auto-sets `DATABASE_URL`)
+3. Set env vars:
+   - `PAYLOAD_SECRET` — `openssl rand -hex 32`
+   - `R2_BUCKET` — `erikankrom-media`
+   - `R2_ENDPOINT` — `https://<account-id>.r2.cloudflarestorage.com`
+   - `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` — from R2 API token
 
-Update `apps/cms/wrangler.jsonc` with the D1 `database_id` from the output.
+### 2. Frontend (`apps/web`)
 
-### 2. Set the Payload secret
+1. Create a Vercel project with root directory set to `apps/web`
+2. Set env var: `CMS_URL` — the CMS Vercel deployment URL
 
-```bash
-cd apps/cms
-wrangler secret put PAYLOAD_SECRET
-```
-
-### 3. Deploy
-
-```bash
-# Deploy CMS
-pnpm deploy:cms
-
-# Update apps/web/wrangler.jsonc CMS_URL to the CMS worker URL
-# Deploy frontend
-pnpm deploy:web
-```
+Both deploy automatically on `git push`.
 
 ## Collections
 
-| Collection | Description |
-|-----------|-------------|
-| `users`   | Admin authentication |
-| `media`   | Image/file uploads (stored in R2) |
-| `posts`   | Blog posts with rich text content |
-| `projects`| Project showcase entries |
+| Collection  | Description                              |
+| ----------- | ---------------------------------------- |
+| `users`     | Admin authentication                     |
+| `media`     | Image/file uploads (stored in R2)        |
+| `posts`     | Blog posts with rich text content        |
+| `projects`  | Project showcase entries                 |
+
+## Globals
+
+| Global   | Description                                                       |
+| -------- | ----------------------------------------------------------------- |
+| `resume` | Structured resume data (experience, education, skills, certs)     |

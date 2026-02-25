@@ -1,4 +1,4 @@
-export const CMS_URL = import.meta.env.CMS_URL || "http://localhost:3000";
+export const CMS_URL = process.env.CMS_URL || import.meta.env.CMS_URL || "http://localhost:3000";
 
 export interface MediaItem {
   id: string;

@@ -1,7 +1,6 @@
 import { withPayload } from '@payloadcms/next/withPayload'
 
 const nextConfig = {
-  serverExternalPackages: ['jose', 'pg-cloudflare'],
   webpack: (webpackConfig: any) => {
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
