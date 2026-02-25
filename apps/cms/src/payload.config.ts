@@ -30,6 +30,7 @@ export default buildConfig({
   },
   db: vercelPostgresAdapter({
     pool: { connectionString: process.env.DATABASE_URL },
+    push: true,
   }),
   plugins: [
     vercelBlobStorage({
