@@ -3,7 +3,7 @@ import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
-import { s3Storage } from '@payloadcms/storage-s3'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
@@ -32,18 +32,9 @@ export default buildConfig({
     pool: { connectionString: process.env.DATABASE_URL },
   }),
   plugins: [
-    s3Storage({
+    vercelBlobStorage({
       collections: { media: true },
-      bucket: process.env.R2_BUCKET || '',
-      config: {
-        credentials: {
-          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-        },
-        region: 'auto',
-        endpoint: process.env.R2_ENDPOINT || '',
-        forcePathStyle: true,
-      },
+      token: process.env.BLOB_READ_WRITE_TOKEN || '',
     }),
   ],
   cors: ['https://erikankrom.com', 'http://localhost:4321'],
