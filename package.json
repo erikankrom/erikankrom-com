@@ -1,0 +1,24 @@
+{
+  "name": "erikankrom-com",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter @erikankrom/web dev",
+    "dev:cms": "pnpm --filter @erikankrom/cms dev",
+    "build:web": "pnpm --filter @erikankrom/web build",
+    "build:cms": "pnpm --filter @erikankrom/cms build",
+    "deploy:web": "pnpm --filter @erikankrom/web deploy",
+    "deploy:cms": "pnpm --filter @erikankrom/cms deploy",
+    "preview:web": "pnpm --filter @erikankrom/web preview"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd",
+      "unrs-resolver"
+    ]
+  }
+}

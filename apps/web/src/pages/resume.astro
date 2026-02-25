@@ -1,0 +1,316 @@
+---
+import Base from "../layouts/Base.astro";
+import { fetchGlobal } from "../lib/payload";
+
+interface Highlight {
+  text: string;
+}
+
+interface Experience {
+  company: string;
+  role: string;
+  url?: string;
+  startDate: string;
+  endDate?: string;
+  description?: string;
+  highlights?: Highlight[];
+}
+
+interface Education {
+  institution: string;
+  degree: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+}
+
+interface SkillCategory {
+  category: string;
+  items?: { name: string }[];
+}
+
+interface Certification {
+  name: string;
+  issuer?: string;
+  date?: string;
+  url?: string;
+}
+
+interface ResumeData {
+  headline?: string;
+  summary?: string;
+  experience?: Experience[];
+  education?: Education[];
+  skills?: SkillCategory[];
+  certifications?: Certification[];
+}
+
+let resume: ResumeData = {};
+try {
+  resume = await fetchGlobal<ResumeData>("resume");
+} catch {
+  // CMS unavailable
+}
+---
+
+<Base title="Resume" description="Resume of Erik Ankrom">
+  <div class="resume-header">
+    <h1>Resume</h1>
+    {resume.headline && <p class="headline">{resume.headline}</p>}
+  </div>
+
+  {resume.summary && <p class="summary">{resume.summary}</p>}
+
+  {
+    resume.experience && resume.experience.length > 0 && (
+      <section>
+        <h2>Experience</h2>
+        <div class="entries">
+          {resume.experience.map((job) => (
+            <div class="entry">
+              <div class="entry-header">
+                <div>
+                  <h3>{job.role}</h3>
+                  <p class="org">
+                    {job.url ? (
+                      <a href={job.url} target="_blank" rel="noopener">
+                        {job.company}
+                      </a>
+                    ) : (
+                      job.company
+                    )}
+                  </p>
+                </div>
+                <span class="dates">
+                  {job.startDate} &mdash; {job.endDate || "Present"}
+                </span>
+              </div>
+              {job.description && <p class="description">{job.description}</p>}
+              {job.highlights && job.highlights.length > 0 && (
+                <ul class="highlights">
+                  {job.highlights.map((h) => (
+                    <li>{h.text}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    resume.education && resume.education.length > 0 && (
+      <section>
+        <h2>Education</h2>
+        <div class="entries">
+          {resume.education.map((edu) => (
+            <div class="entry">
+              <div class="entry-header">
+                <div>
+                  <h3>{edu.degree}</h3>
+                  <p class="org">{edu.institution}</p>
+                </div>
+                {(edu.startDate || edu.endDate) && (
+                  <span class="dates">
+                    {edu.startDate}
+                    {edu.endDate && <> &mdash; {edu.endDate}</>}
+                  </span>
+                )}
+              </div>
+              {edu.description && <p class="description">{edu.description}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    resume.skills && resume.skills.length > 0 && (
+      <section>
+        <h2>Skills</h2>
+        <div class="skills-grid">
+          {resume.skills.map((cat) => (
+            <div class="skill-category">
+              <h3>{cat.category}</h3>
+              {cat.items && cat.items.length > 0 && (
+                <div class="skill-tags">
+                  {cat.items.map((item) => (
+                    <span class="tag">{item.name}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    resume.certifications && resume.certifications.length > 0 && (
+      <section>
+        <h2>Certifications</h2>
+        <div class="entries">
+          {resume.certifications.map((cert) => (
+            <div class="entry cert-entry">
+              <h3>
+                {cert.url ? (
+                  <a href={cert.url} target="_blank" rel="noopener">
+                    {cert.name}
+                  </a>
+                ) : (
+                  cert.name
+                )}
+              </h3>
+              <div class="cert-meta">
+                {cert.issuer && <span>{cert.issuer}</span>}
+                {cert.date && <span class="dates">{cert.date}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  {
+    !resume.experience?.length &&
+      !resume.education?.length &&
+      !resume.skills?.length && <p class="empty">Resume details coming soon.</p>
+  }
+</Base>
+
+<style>
+  .resume-header {
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .headline {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+  }
+
+  .summary {
+    color: var(--color-text-muted);
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+  }
+
+  section {
+    margin-bottom: 2.5rem;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .entries {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .org {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.1rem;
+  }
+
+  .dates {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .description {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    line-height: 1.7;
+  }
+
+  .highlights {
+    margin-top: 0.5rem;
+    padding-left: 1.25rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  .highlights li {
+    margin-bottom: 0.25rem;
+  }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .skill-category h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    padding: 0.2rem 0.6rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  .cert-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .cert-meta {
+    display: flex;
+    gap: 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .empty {
+    color: var(--color-text-muted);
+  }
+</style>

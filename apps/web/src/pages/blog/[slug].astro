@@ -1,0 +1,136 @@
+---
+import Base from "../../layouts/Base.astro";
+import { fetchOneFromCMS, mediaUrl, mediaAlt, type MediaItem } from "../../lib/payload";
+
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  content_html?: string;
+  excerpt?: string;
+  publishedAt?: string;
+  banner?: MediaItem;
+}
+
+const { slug } = Astro.params;
+const post = await fetchOneFromCMS<Post>("posts", slug!);
+
+if (!post) {
+  return Astro.redirect("/blog");
+}
+---
+
+<Base title={post.title} description={post.excerpt}>
+  <article>
+    {mediaUrl(post.banner) && (
+      <img
+        class="banner"
+        src={mediaUrl(post.banner)!}
+        alt={mediaAlt(post.banner)}
+      />
+    )}
+    <header>
+      <h1>{post.title}</h1>
+      {
+        post.publishedAt && (
+          <time datetime={post.publishedAt}>
+            {new Date(post.publishedAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+        )
+      }
+    </header>
+    {post.content_html && <div class="prose" set:html={post.content_html} />}
+  </article>
+  <a href="/blog" class="back">&larr; Back to blog</a>
+</Base>
+
+<style>
+  .banner {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  article header {
+    margin-bottom: 2rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  time {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+  }
+
+  .prose {
+    color: var(--color-text-muted);
+    line-height: 1.8;
+  }
+
+  .prose :global(h2) {
+    color: var(--color-text);
+    font-size: 1.4rem;
+    margin: 2rem 0 0.75rem;
+  }
+
+  .prose :global(h3) {
+    color: var(--color-text);
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  .prose :global(p) {
+    margin-bottom: 1rem;
+  }
+
+  .prose :global(pre) {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+
+  .prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  .prose :global(a) {
+    color: var(--color-accent);
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--color-border);
+    padding-left: 1rem;
+    color: var(--color-text-muted);
+    margin: 1rem 0;
+  }
+
+  .back {
+    display: inline-block;
+    margin-top: 3rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+</style>

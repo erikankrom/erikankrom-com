@@ -1,0 +1,38 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="About" description="About Erik Ankrom">
+  <h1>About</h1>
+  <div class="content">
+    <p>
+      Welcome to my corner of the internet. I'm Erik Ankrom — a software
+      engineer who enjoys building things that matter.
+    </p>
+    <p>
+      This site is built with <a href="https://astro.build">Astro</a>, powered
+      by <a href="https://payloadcms.com">Payload CMS</a>, and deployed on
+      <a href="https://workers.cloudflare.com">Cloudflare Workers</a>.
+    </p>
+  </div>
+</Base>
+
+<style>
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--color-text-muted);
+    line-height: 1.8;
+  }
+
+  .content a {
+    color: var(--color-accent);
+  }
+</style>

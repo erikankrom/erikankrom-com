@@ -1,0 +1,150 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Erik Ankrom", description = "Personal website of Erik Ankrom" } = Astro.props;
+const pageTitle = title === "Erik Ankrom" ? title : `${title} | Erik Ankrom`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/" class="logo">Erik Ankrom</a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/resume">Resume</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/projects">Projects</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <div class="footer-links">
+        <a href="https://github.com/erikankrom" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://linkedin.com/in/erikankrom" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+      <p>&copy; {new Date().getFullYear()} Erik Ankrom</p>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  :root {
+    --color-bg: #0a0a0a;
+    --color-surface: #141414;
+    --color-border: #262626;
+    --color-text: #ededed;
+    --color-text-muted: #a1a1a1;
+    --color-accent: #3b82f6;
+    --max-width: 720px;
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  header {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  nav {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .logo:hover {
+    text-decoration: none;
+    color: var(--color-accent);
+  }
+
+  nav ul {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+  }
+
+  nav a {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  nav a:hover {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  main {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+
+  footer {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .footer-links a {
+    color: var(--color-text-muted);
+  }
+
+  .footer-links a:hover {
+    color: var(--color-text);
+  }
+</style>

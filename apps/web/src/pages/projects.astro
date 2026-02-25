@@ -1,0 +1,241 @@
+---
+import Base from "../layouts/Base.astro";
+import { fetchFromCMS, mediaUrl, mediaAlt, type MediaItem } from "../lib/payload";
+import { fetchGitHubRepos, type GitHubRepo } from "../lib/github";
+
+interface GalleryImage {
+  image: MediaItem;
+  caption?: string;
+}
+
+interface Project {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  banner?: MediaItem;
+  gallery?: GalleryImage[];
+  url?: string;
+  repo?: string;
+}
+
+let projects: Project[] = [];
+try {
+  const res = await fetchFromCMS<Project>("projects", {
+    sort: "title",
+    limit: "50",
+  });
+  projects = res.docs;
+} catch {
+  // CMS unavailable
+}
+
+const repos = await fetchGitHubRepos();
+// Exclude repos already linked in CMS projects
+const cmsRepoUrls = new Set(projects.map((p) => p.repo).filter(Boolean));
+const githubRepos = repos.filter((r) => !cmsRepoUrls.has(r.html_url));
+---
+
+<Base title="Projects" description="Projects by Erik Ankrom">
+  <h1>Projects</h1>
+  {
+    projects.length > 0 ? (
+      <ul class="projects">
+        {projects.map((project) => (
+          <li>
+            {mediaUrl(project.banner) && (
+              <img
+                class="project-banner"
+                src={mediaUrl(project.banner)!}
+                alt={mediaAlt(project.banner)}
+              />
+            )}
+            <div class="project-body">
+              <h2>{project.title}</h2>
+              {project.description && <p>{project.description}</p>}
+              {project.gallery && project.gallery.length > 0 && (
+                <div class="gallery">
+                  {project.gallery.map((item) => (
+                    <figure>
+                      <img
+                        src={mediaUrl(item.image)!}
+                        alt={mediaAlt(item.image)}
+                        loading="lazy"
+                      />
+                      {item.caption && <figcaption>{item.caption}</figcaption>}
+                    </figure>
+                  ))}
+                </div>
+              )}
+              <div class="links">
+                {project.url && (
+                  <a href={project.url} target="_blank" rel="noopener">
+                    Live
+                  </a>
+                )}
+                {project.repo && (
+                  <a href={project.repo} target="_blank" rel="noopener">
+                    Source
+                  </a>
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="empty">Projects coming soon.</p>
+    )
+  }
+
+  {githubRepos.length > 0 && (
+    <section class="github-section">
+      <h2>GitHub Repositories</h2>
+      <ul class="repos">
+        {githubRepos.map((repo) => (
+          <li>
+            <a href={repo.html_url} target="_blank" rel="noopener">
+              <h3>{repo.name}</h3>
+            </a>
+            {repo.description && <p>{repo.description}</p>}
+            <div class="repo-meta">
+              {repo.language && <span class="language">{repo.language}</span>}
+              {repo.stargazers_count > 0 && <span class="stars">{repo.stargazers_count} stars</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+</Base>
+
+<style>
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+  }
+
+  .projects {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .projects li {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+
+  .projects li:hover {
+    border-color: var(--color-text-muted);
+  }
+
+  .project-banner {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+  }
+
+  .project-body {
+    padding: 1.25rem;
+  }
+
+  .projects h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .projects p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .gallery figure {
+    margin: 0;
+  }
+
+  .gallery img {
+    width: 100%;
+    border-radius: 4px;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+  }
+
+  .gallery figcaption {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+
+  .links {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .empty {
+    color: var(--color-text-muted);
+  }
+
+  .github-section {
+    margin-top: 3rem;
+  }
+
+  .github-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+
+  .repos {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .repos li {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: border-color 0.15s;
+  }
+
+  .repos li:hover {
+    border-color: var(--color-text-muted);
+  }
+
+  .repos h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .repos p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .repo-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+</style>
