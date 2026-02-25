@@ -10,6 +10,8 @@ import { Media } from './collections/Media'
 import { Posts } from './collections/Posts'
 import { Projects } from './collections/Projects'
 import { Resume } from './globals/Resume'
+import { Homepage } from './globals/Homepage'
+import { SiteSettings } from './globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -22,7 +24,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Posts, Projects],
-  globals: [Resume],
+  globals: [Resume, Homepage, SiteSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

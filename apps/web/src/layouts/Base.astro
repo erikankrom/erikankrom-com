@@ -1,11 +1,55 @@
 ---
+import { fetchGlobal } from "../lib/payload";
+
+interface NavLink {
+  label: string;
+  url: string;
+}
+
+interface FooterLink {
+  label: string;
+  url: string;
+  external?: boolean;
+}
+
+interface SiteSettingsData {
+  siteName?: string;
+  siteDescription?: string;
+  navLinks?: NavLink[];
+  footerLinks?: FooterLink[];
+  copyrightName?: string;
+}
+
 interface Props {
   title?: string;
   description?: string;
 }
 
-const { title = "Erik Ankrom", description = "Personal website of Erik Ankrom" } = Astro.props;
-const pageTitle = title === "Erik Ankrom" ? title : `${title} | Erik Ankrom`;
+let settings: SiteSettingsData = {};
+try {
+  settings = await fetchGlobal<SiteSettingsData>("site-settings");
+} catch {
+  // CMS unavailable — use defaults
+}
+
+const siteName = settings.siteName || "Erik Ankrom";
+const siteDescription = settings.siteDescription || "Personal website of Erik Ankrom";
+const navLinks = settings.navLinks?.length ? settings.navLinks : [
+  { label: "About", url: "/about" },
+  { label: "Resume", url: "/resume" },
+  { label: "Blog", url: "/blog" },
+  { label: "Projects", url: "/projects" },
+];
+const footerLinks = settings.footerLinks?.length ? settings.footerLinks : [
+  { label: "GitHub", url: "https://github.com/erikankrom", external: true },
+  { label: "LinkedIn", url: "https://linkedin.com/in/erikankrom", external: true },
+];
+const copyrightName = settings.copyrightName || "Erik Ankrom";
+
+const { title, description } = Astro.props;
+const displayTitle = title || siteName;
+const pageTitle = displayTitle === siteName ? siteName : `${displayTitle} | ${siteName}`;
+const pageDescription = description || siteDescription;
 ---
 
 <!doctype html>
@@ -13,19 +57,18 @@ const pageTitle = title === "Erik Ankrom" ? title : `${title} | Erik Ankrom`;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
+    <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{pageTitle}</title>
   </head>
   <body>
     <header>
       <nav>
-        <a href="/" class="logo">Erik Ankrom</a>
+        <a href="/" class="logo">{siteName}</a>
         <ul>
-          <li><a href="/about">About</a></li>
-          <li><a href="/resume">Resume</a></li>
-          <li><a href="/blog">Blog</a></li>
-          <li><a href="/projects">Projects</a></li>
+          {navLinks.map((link) => (
+            <li><a href={link.url}>{link.label}</a></li>
+          ))}
         </ul>
       </nav>
     </header>
@@ -33,11 +76,17 @@ const pageTitle = title === "Erik Ankrom" ? title : `${title} | Erik Ankrom`;
       <slot />
     </main>
     <footer>
-      <div class="footer-links">
-        <a href="https://github.com/erikankrom" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://linkedin.com/in/erikankrom" target="_blank" rel="noopener">LinkedIn</a>
-      </div>
-      <p>&copy; {new Date().getFullYear()} Erik Ankrom</p>
+      {footerLinks.length > 0 && (
+        <div class="footer-links">
+          {footerLinks.map((link) => (
+            <a
+              href={link.url}
+              {...(link.external ? { target: "_blank", rel: "noopener" } : {})}
+            >{link.label}</a>
+          ))}
+        </div>
+      )}
+      <p>&copy; {new Date().getFullYear()} {copyrightName}</p>
     </footer>
   </body>
 </html>

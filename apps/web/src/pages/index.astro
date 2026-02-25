@@ -1,14 +1,39 @@
 ---
 import Base from "../layouts/Base.astro";
+import { fetchGlobal } from "../lib/payload";
+
+interface HomepageLink {
+  label: string;
+  url: string;
+}
+
+interface HomepageData {
+  tagline?: string;
+  links?: HomepageLink[];
+}
+
+let homepage: HomepageData = {};
+try {
+  homepage = await fetchGlobal<HomepageData>("homepage");
+} catch {
+  // CMS unavailable — use defaults
+}
+
+const tagline = homepage.tagline || "Software engineer, builder, thinker.";
+const links = homepage.links?.length ? homepage.links : [
+  { label: "About me", url: "/about" },
+  { label: "Blog", url: "/blog" },
+  { label: "Projects", url: "/projects" },
+];
 ---
 
 <Base>
   <section class="hero">
-    <p class="tagline">Software engineer, builder, thinker.</p>
+    <p class="tagline">{tagline}</p>
     <div class="links">
-      <a href="/about">About me</a>
-      <a href="/blog">Blog</a>
-      <a href="/projects">Projects</a>
+      {links.map((link) => (
+        <a href={link.url}>{link.label}</a>
+      ))}
     </div>
   </section>
 </Base>
