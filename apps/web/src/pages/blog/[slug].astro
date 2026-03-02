@@ -1,6 +1,11 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { fetchOneFromCMS, mediaUrl, mediaAlt, type MediaItem } from "../../lib/payload";
+import {
+  fetchOneFromCMS,
+  mediaUrl,
+  mediaAlt,
+  type MediaItem,
+} from "../../lib/payload";
 
 interface Post {
   id: string;
@@ -21,19 +26,29 @@ if (!post) {
 ---
 
 <Base title={post.title} description={post.excerpt}>
-  <article>
-    {mediaUrl(post.banner) && (
-      <img
-        class="banner"
-        src={mediaUrl(post.banner)!}
-        alt={mediaAlt(post.banner)}
-      />
-    )}
-    <header>
-      <h1>{post.title}</h1>
+  <article class="max-w-3xl mx-auto">
+    {
+      mediaUrl(post.banner) && (
+        <img
+          src={mediaUrl(post.banner)!}
+          alt={mediaAlt(post.banner)}
+          class="w-full rounded-xl mb-8 aspect-[2/1] object-cover border border-border"
+        />
+      )
+    }
+
+    <header class="mb-10">
+      <h1
+        class="text-3xl md:text-4xl font-bold tracking-tight text-text leading-tight"
+      >
+        {post.title}
+      </h1>
       {
         post.publishedAt && (
-          <time datetime={post.publishedAt}>
+          <time
+            datetime={post.publishedAt}
+            class="inline-block mt-3 text-sm text-text-muted font-mono"
+          >
             {new Date(post.publishedAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
@@ -43,94 +58,82 @@ if (!post) {
         )
       }
     </header>
+
     {post.content_html && <div class="prose" set:html={post.content_html} />}
   </article>
-  <a href="/blog" class="back">&larr; Back to blog</a>
+
+  <div class="max-w-3xl mx-auto mt-12 pt-8 border-t border-border">
+    <a
+      href="/blog"
+      class="inline-flex items-center gap-2 text-sm text-text-muted hover:text-accent transition-colors duration-200"
+    >
+      <svg
+        class="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"></path>
+      </svg>
+      Back to blog
+    </a>
+  </div>
 </Base>
 
 <style>
-  .banner {
-    width: 100%;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-  }
-
-  article header {
-    margin-bottom: 2rem;
-  }
-
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-
-  time {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    font-family: var(--font-mono);
-  }
+  @reference "../../styles/global.css";
 
   .prose {
-    color: var(--color-text-muted);
-    line-height: 1.8;
+    @apply text-text-secondary leading-relaxed text-lg;
   }
 
   .prose :global(h2) {
-    color: var(--color-text);
-    font-size: 1.4rem;
-    margin: 2rem 0 0.75rem;
+    @apply text-text text-2xl font-bold mt-10 mb-4;
   }
 
   .prose :global(h3) {
-    color: var(--color-text);
-    font-size: 1.15rem;
-    margin: 1.5rem 0 0.5rem;
+    @apply text-text text-xl font-semibold mt-8 mb-3;
   }
 
   .prose :global(p) {
-    margin-bottom: 1rem;
-  }
-
-  .prose :global(pre) {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    padding: 1rem;
-    overflow-x: auto;
-    margin: 1rem 0;
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-  }
-
-  .prose :global(code) {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
+    @apply mb-5;
   }
 
   .prose :global(a) {
-    color: var(--color-accent);
+    @apply text-accent hover:text-accent-hover underline decoration-accent/30 underline-offset-2 hover:decoration-accent transition-colors duration-200;
+  }
+
+  .prose :global(pre) {
+    @apply bg-surface border border-border rounded-xl p-5 overflow-x-auto my-6 font-mono text-sm;
+  }
+
+  .prose :global(code) {
+    @apply font-mono text-[0.9em];
+  }
+
+  .prose :global(p > code),
+  .prose :global(li > code) {
+    @apply bg-surface px-1.5 py-0.5 rounded-md border border-border text-accent;
   }
 
   .prose :global(ul),
   .prose :global(ol) {
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
+    @apply pl-6 mb-5 space-y-1;
   }
 
   .prose :global(blockquote) {
-    border-left: 3px solid var(--color-border);
-    padding-left: 1rem;
-    color: var(--color-text-muted);
-    margin: 1rem 0;
+    @apply border-l-2 border-accent/40 pl-5 my-6 text-text-muted italic;
   }
 
-  .back {
-    display: inline-block;
-    margin-top: 3rem;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
+  .prose :global(img) {
+    @apply rounded-xl border border-border my-6;
+  }
+
+  .prose :global(hr) {
+    @apply border-border my-10;
   }
 </style>

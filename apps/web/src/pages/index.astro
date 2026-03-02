@@ -1,6 +1,14 @@
 ---
 import Base from "../layouts/Base.astro";
-import { fetchGlobal } from "../lib/payload";
+import Card from "../components/Card.astro";
+import {
+  fetchGlobal,
+  fetchFromCMS,
+  mediaUrl,
+  mediaAlt,
+  type MediaItem,
+} from "../lib/payload";
+import { fetchGitHubProfile, type GitHubProfile } from "../lib/github";
 
 interface HomepageLink {
   label: string;
@@ -12,60 +20,219 @@ interface HomepageData {
   links?: HomepageLink[];
 }
 
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string;
+  publishedAt?: string;
+  banner?: MediaItem;
+}
+
+interface Project {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  banner?: MediaItem;
+  url?: string;
+  repo?: string;
+}
+
 let homepage: HomepageData = {};
 try {
   homepage = await fetchGlobal<HomepageData>("homepage");
 } catch {
-  // CMS unavailable — use defaults
+  // CMS unavailable
 }
 
 const tagline = homepage.tagline || "Software engineer, builder, thinker.";
-const links = homepage.links?.length ? homepage.links : [
-  { label: "About me", url: "/about" },
-  { label: "Blog", url: "/blog" },
-  { label: "Projects", url: "/projects" },
-];
+const links = homepage.links?.length
+  ? homepage.links
+  : [
+      { label: "About me", url: "/about" },
+      { label: "Blog", url: "/blog" },
+      { label: "Projects", url: "/projects" },
+    ];
+
+let recentPosts: Post[] = [];
+try {
+  const res = await fetchFromCMS<Post>("posts", {
+    sort: "-publishedAt",
+    limit: "3",
+  });
+  recentPosts = res.docs;
+} catch {}
+
+let featuredProjects: Project[] = [];
+try {
+  const res = await fetchFromCMS<Project>("projects", {
+    sort: "title",
+    limit: "3",
+  });
+  featuredProjects = res.docs;
+} catch {}
+
+const profile = await fetchGitHubProfile();
 ---
 
 <Base>
-  <section class="hero">
-    <p class="tagline">{tagline}</p>
-    <div class="links">
-      {links.map((link) => (
-        <a href={link.url}>{link.label}</a>
-      ))}
+  <!-- Hero -->
+  <section class="relative py-16 md:py-24">
+    <div
+      class="absolute -top-24 -left-24 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none"
+    >
+    </div>
+    <div
+      class="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"
+    >
+    </div>
+
+    <div class="relative">
+      <div class="flex items-start gap-6 mb-8">
+        {
+          profile?.avatar_url && (
+            <img
+              src={profile.avatar_url}
+              alt={profile.name || "Erik Ankrom"}
+              class="w-20 h-20 rounded-2xl border-2 border-border shadow-lg shadow-accent/10 flex-shrink-0"
+            />
+          )
+        }
+        <div>
+          <h1
+            class="text-4xl md:text-5xl font-bold tracking-tight text-text"
+          >
+            Erik Ankrom
+          </h1>
+          <p class="mt-3 text-lg md:text-xl text-text-muted max-w-xl leading-relaxed">
+            {tagline}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 mt-8">
+        {
+          links.map((link, i) => (
+            <a
+              href={link.url}
+              class:list={[
+                "inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                i === 0
+                  ? "bg-accent text-white hover:bg-accent-hover shadow-lg shadow-accent/25"
+                  : "border border-border text-text-muted hover:text-text hover:border-border-hover hover:bg-surface",
+              ]}
+            >
+              {link.label}
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                />
+              </svg>
+            </a>
+          ))
+        }
+      </div>
     </div>
   </section>
+
+  <!-- Recent Posts -->
+  {
+    recentPosts.length > 0 && (
+      <section class="mt-8 mb-16">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-accent">
+            Recent Posts
+          </h2>
+          <a
+            href="/blog"
+            class="text-xs text-text-muted hover:text-accent transition-colors duration-200"
+          >
+            View all &rarr;
+          </a>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          {recentPosts.map((post) => (
+            <Card href={`/blog/${post.slug}`}>
+              {mediaUrl(post.banner) && (
+                <img
+                  src={mediaUrl(post.banner)!}
+                  alt={mediaAlt(post.banner)}
+                  class="w-full h-36 object-cover rounded-lg mb-4 -mt-1"
+                />
+              )}
+              <h3 class="font-semibold text-text group-hover:text-accent transition-colors duration-200">
+                {post.title}
+              </h3>
+              {post.publishedAt && (
+                <time
+                  datetime={post.publishedAt}
+                  class="text-xs text-text-muted font-mono mt-1 block"
+                >
+                  {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </time>
+              )}
+              {post.excerpt && (
+                <p class="text-sm text-text-muted mt-2 line-clamp-2">
+                  {post.excerpt}
+                </p>
+              )}
+            </Card>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Featured Projects -->
+  {
+    featuredProjects.length > 0 && (
+      <section class="mb-16">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xs font-semibold uppercase tracking-widest text-accent">
+            Projects
+          </h2>
+          <a
+            href="/projects"
+            class="text-xs text-text-muted hover:text-accent transition-colors duration-200"
+          >
+            View all &rarr;
+          </a>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          {featuredProjects.map((project) => (
+            <Card href={project.url || project.repo || "/projects"}>
+              {mediaUrl(project.banner) && (
+                <img
+                  src={mediaUrl(project.banner)!}
+                  alt={mediaAlt(project.banner)}
+                  class="w-full h-36 object-cover rounded-lg mb-4 -mt-1"
+                />
+              )}
+              <h3 class="font-semibold text-text group-hover:text-accent transition-colors duration-200">
+                {project.title}
+              </h3>
+              {project.description && (
+                <p class="text-sm text-text-muted mt-1 line-clamp-2">
+                  {project.description}
+                </p>
+              )}
+            </Card>
+          ))}
+        </div>
+      </section>
+    )
+  }
 </Base>
-
-<style>
-  .hero {
-    padding: 4rem 0;
-  }
-
-  .tagline {
-    font-size: 1.5rem;
-    color: var(--color-text-muted);
-    margin-bottom: 2rem;
-  }
-
-  .links {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .links a {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    transition: all 0.15s;
-  }
-
-  .links a:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    text-decoration: none;
-  }
-</style>

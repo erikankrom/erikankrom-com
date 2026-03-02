@@ -1,5 +1,7 @@
 ---
+import "../styles/global.css";
 import { fetchGlobal } from "../lib/payload";
+import { ViewTransitions } from "astro:transitions";
 
 interface NavLink {
   label: string;
@@ -33,167 +35,125 @@ try {
 }
 
 const siteName = settings.siteName || "Erik Ankrom";
-const siteDescription = settings.siteDescription || "Personal website of Erik Ankrom";
-const navLinks = settings.navLinks?.length ? settings.navLinks : [
-  { label: "About", url: "/about" },
-  { label: "Resume", url: "/resume" },
-  { label: "Blog", url: "/blog" },
-  { label: "Projects", url: "/projects" },
-];
-const footerLinks = settings.footerLinks?.length ? settings.footerLinks : [
-  { label: "GitHub", url: "https://github.com/erikankrom", external: true },
-  { label: "LinkedIn", url: "https://linkedin.com/in/erikankrom", external: true },
-];
+const siteDescription =
+  settings.siteDescription || "Personal website of Erik Ankrom";
+const navLinks = settings.navLinks?.length
+  ? settings.navLinks
+  : [
+      { label: "About", url: "/about" },
+      { label: "Resume", url: "/resume" },
+      { label: "Blog", url: "/blog" },
+      { label: "Projects", url: "/projects" },
+    ];
+const footerLinks = settings.footerLinks?.length
+  ? settings.footerLinks
+  : [
+      {
+        label: "GitHub",
+        url: "https://github.com/erikankrom",
+        external: true,
+      },
+      {
+        label: "LinkedIn",
+        url: "https://linkedin.com/in/erikankrom",
+        external: true,
+      },
+    ];
 const copyrightName = settings.copyrightName || "Erik Ankrom";
 
 const { title, description } = Astro.props;
 const displayTitle = title || siteName;
-const pageTitle = displayTitle === siteName ? siteName : `${displayTitle} | ${siteName}`;
+const pageTitle =
+  displayTitle === siteName ? siteName : `${displayTitle} | ${siteName}`;
 const pageDescription = description || siteDescription;
+
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="bg-bg text-text">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <title>{pageTitle}</title>
+    <ViewTransitions />
   </head>
-  <body>
-    <header>
-      <nav>
-        <a href="/" class="logo">{siteName}</a>
-        <ul>
-          {navLinks.map((link) => (
-            <li><a href={link.url}>{link.label}</a></li>
-          ))}
+  <body class="min-h-screen flex flex-col font-sans antialiased leading-relaxed">
+    <header
+      class="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur-xl"
+    >
+      <nav class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a
+          href="/"
+          class="text-text font-semibold text-lg tracking-tight hover:text-accent transition-colors duration-200"
+        >
+          {siteName}
+        </a>
+        <ul class="flex items-center gap-1">
+          {
+            navLinks.map((link) => {
+              const isActive =
+                currentPath === link.url ||
+                (link.url !== "/" && currentPath.startsWith(link.url));
+              return (
+                <li>
+                  <a
+                    href={link.url}
+                    class:list={[
+                      "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                      isActive
+                        ? "text-accent bg-accent-muted"
+                        : "text-text-muted hover:text-text hover:bg-surface",
+                    ]}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              );
+            })
+          }
         </ul>
       </nav>
     </header>
-    <main>
+
+    <main class="flex-1 max-w-5xl mx-auto px-6 py-12 w-full">
       <slot />
     </main>
-    <footer>
-      {footerLinks.length > 0 && (
-        <div class="footer-links">
-          {footerLinks.map((link) => (
-            <a
-              href={link.url}
-              {...(link.external ? { target: "_blank", rel: "noopener" } : {})}
-            >{link.label}</a>
-          ))}
-        </div>
-      )}
-      <p>&copy; {new Date().getFullYear()} {copyrightName}</p>
+
+    <footer class="border-t border-border">
+      <div
+        class="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+      >
+        <p class="text-text-muted text-sm">
+          &copy; {new Date().getFullYear()}
+          {copyrightName}
+        </p>
+        {
+          footerLinks.length > 0 && (
+            <div class="flex items-center gap-4">
+              {footerLinks.map((link) => (
+                <a
+                  href={link.url}
+                  class="text-text-muted hover:text-text text-sm transition-colors duration-200"
+                  {...(link.external
+                    ? { target: "_blank", rel: "noopener" }
+                    : {})}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          )
+        }
+      </div>
     </footer>
   </body>
 </html>
-
-<style is:global>
-  *,
-  *::before,
-  *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  :root {
-    --color-bg: #0a0a0a;
-    --color-surface: #141414;
-    --color-border: #262626;
-    --color-text: #ededed;
-    --color-text-muted: #a1a1a1;
-    --color-accent: #3b82f6;
-    --max-width: 720px;
-    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
-  }
-
-  html {
-    font-family: var(--font-sans);
-    background: var(--color-bg);
-    color: var(--color-text);
-    line-height: 1.6;
-  }
-
-  a {
-    color: var(--color-accent);
-    text-decoration: none;
-  }
-
-  a:hover {
-    text-decoration: underline;
-  }
-
-  header {
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  nav {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .logo {
-    color: var(--color-text);
-    font-weight: 600;
-    font-size: 1.1rem;
-  }
-
-  .logo:hover {
-    text-decoration: none;
-    color: var(--color-accent);
-  }
-
-  nav ul {
-    display: flex;
-    list-style: none;
-    gap: 1.5rem;
-  }
-
-  nav a {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-  }
-
-  nav a:hover {
-    color: var(--color-text);
-    text-decoration: none;
-  }
-
-  main {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 3rem 1.5rem;
-  }
-
-  footer {
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-    border-top: 1px solid var(--color-border);
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-  }
-
-  .footer-links {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .footer-links a {
-    color: var(--color-text-muted);
-  }
-
-  .footer-links a:hover {
-    color: var(--color-text);
-  }
-</style>

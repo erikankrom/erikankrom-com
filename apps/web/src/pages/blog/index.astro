@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
-import { fetchFromCMS } from "../../lib/payload";
+import Card from "../../components/Card.astro";
+import { fetchFromCMS, mediaUrl, mediaAlt, type MediaItem } from "../../lib/payload";
 
 interface Post {
   id: string;
@@ -8,6 +9,7 @@ interface Post {
   slug: string;
   excerpt?: string;
   publishedAt?: string;
+  banner?: MediaItem;
 }
 
 let posts: Post[] = [];
@@ -18,88 +20,59 @@ try {
   });
   posts = res.docs;
 } catch {
-  // CMS unavailable — render empty state
+  // CMS unavailable
 }
 ---
 
 <Base title="Blog" description="Blog posts by Erik Ankrom">
-  <h1>Blog</h1>
+  <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text mb-2">
+    Blog
+  </h1>
+  <p class="text-text-muted mb-10">Thoughts, tutorials, and things I've learned.</p>
+
   {
     posts.length > 0 ? (
-      <ul class="posts">
+      <div class="space-y-4">
         {posts.map((post) => (
-          <li>
-            <a href={`/blog/${post.slug}`}>
-              <span class="title">{post.title}</span>
-              {post.publishedAt && (
-                <time datetime={post.publishedAt}>
-                  {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </time>
+          <Card href={`/blog/${post.slug}`} class="flex flex-col sm:flex-row gap-4">
+            {mediaUrl(post.banner) && (
+              <img
+                src={mediaUrl(post.banner)!}
+                alt={mediaAlt(post.banner)}
+                class="w-full sm:w-44 h-32 sm:h-auto object-cover rounded-lg flex-shrink-0"
+              />
+            )}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-4">
+                <h2 class="font-semibold text-text group-hover:text-accent transition-colors duration-200">
+                  {post.title}
+                </h2>
+                {post.publishedAt && (
+                  <time
+                    datetime={post.publishedAt}
+                    class="text-xs text-text-muted font-mono whitespace-nowrap flex-shrink-0 mt-1"
+                  >
+                    {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </time>
+                )}
+              </div>
+              {post.excerpt && (
+                <p class="text-sm text-text-muted mt-2 line-clamp-2 leading-relaxed">
+                  {post.excerpt}
+                </p>
               )}
-            </a>
-            {post.excerpt && <p class="excerpt">{post.excerpt}</p>}
-          </li>
+            </div>
+          </Card>
         ))}
-      </ul>
+      </div>
     ) : (
-      <p class="empty">No posts yet. Check back soon.</p>
+      <div class="text-center py-16">
+        <p class="text-text-muted text-lg">No posts yet. Check back soon.</p>
+      </div>
     )
   }
 </Base>
-
-<style>
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-  }
-
-  .posts {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .posts a {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    color: var(--color-text);
-  }
-
-  .posts a:hover .title {
-    color: var(--color-accent);
-  }
-
-  .posts a:hover {
-    text-decoration: none;
-  }
-
-  .title {
-    font-weight: 500;
-    transition: color 0.15s;
-  }
-
-  time {
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    white-space: nowrap;
-    font-family: var(--font-mono);
-  }
-
-  .excerpt {
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    margin-top: 0.25rem;
-  }
-
-  .empty {
-    color: var(--color-text-muted);
-  }
-</style>
